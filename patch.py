@@ -1,10 +1,17 @@
 # https://www.capstone-engine.org/lang_python.html
 
 import pefile
+import sys
+import os
 from capstone import *
 
+if len(sys.argv) != 2:
+    print("Usage: python patch.py <file>")
+    sys.exit(1)
+
+filename = os.path.abspath(sys.argv[1])
 # 加载PE文件
-pe = pefile.PE('./ida.dll')
+pe = pefile.PE(filename)
 # capstone反编译器 初始化
 MODE = Cs(CS_ARCH_X86, CS_MODE_64)
 
@@ -37,7 +44,7 @@ for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
         start_addr = exp.address - BaseOfCode + SizeOfHeaders
         break
 
-with open('./ida.dll', 'rb') as f:
+with open(filename, 'rb') as f:
     f.seek(start_addr)
     code = get_func_code(start_addr, f)
 
@@ -59,10 +66,10 @@ with open('./ida.dll', 'rb') as f:
 print([hex(i) for i in nop_addr])
 
 import shutil
-shutil.copyfile('./ida.dll', './ida.dll.bak')
+shutil.copyfile(filename, filename + '.bak')
 
 # 打开文件
-with open('ida.dll', 'rb+') as f:
+with open(filename, 'rb+') as f:
     # 定位到第10个字节
     for addr in nop_addr:
         f.seek(addr)
@@ -70,7 +77,7 @@ with open('ida.dll', 'rb+') as f:
 
     print("Patch success!, checking the result")
 
-with open('ida.dll', 'rb') as f:
+with open(filename, 'rb') as f:
     dism_func(start_addr, f)
     print("=====================================================")
     dism_func(func2_start_addr, f)
