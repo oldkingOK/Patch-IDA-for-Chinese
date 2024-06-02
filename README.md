@@ -7,6 +7,7 @@ python -m venv .venv
 # activate
 pip install -r requirements.txt
 python patch.py ida.dll
+python patch.py ida64.dll
 ```
 
 ## 另外
